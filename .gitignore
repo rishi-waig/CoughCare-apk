@@ -61,7 +61,7 @@ ENV/
 .venv/
 
 # Large files / Models
-*.pth
+
 *.pt
 *.h5
 *.onnx
