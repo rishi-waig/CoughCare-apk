@@ -199,7 +199,7 @@ class ActualCoughModel:
 
                 # Interpret results (same thresholds as before)
                 is_cough = probability > 0.61  # Very low - detects any cough-like audio
-                tb_detected = probability > 0.5  # Standard threshold for TB
+                tb_detected = probability > 1  # Standard threshold for TB
 
                 # Build per-segment timestamps (seconds). In training config, segment_duration and hop_length are in seconds.
                 num_segments = int(segments.shape[1])
@@ -358,7 +358,7 @@ def analyze_tb_endpoint():
         except Exception:
             tb_threshold = None
         if tb_threshold is None or not (0.0 <= tb_threshold <= 1.0):
-            tb_threshold = 0.5
+            tb_threshold = 1
 
         is_cough, probability, seg_list, num_segments, timestamps = model.predict(audio_bytes)
 
