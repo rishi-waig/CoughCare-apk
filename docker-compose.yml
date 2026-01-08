@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: coughcare-backend
+    environment:
+      - PORT=5000
+      - MODEL_PATH=backup_best_model_20251015_170801.pth
+      - AUDIO_SAVE_DIR=/app/uploaded_audio
+    ports:
+      - "5001:5000"  # Host:Container (5001 to avoid macOS AirPlay conflict)
+    volumes:
+      # Mount uploaded_audio directory for persistence
+      - ./uploaded_audio:/app/uploaded_audio
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - coughcare-network
+
+networks:
+  coughcare-network:
+    driver: bridge

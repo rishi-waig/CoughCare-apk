@@ -1,0 +1,9 @@
+# Core backend dependencies for CoughCare inference
+# CPU-only versions for faster builds and smaller images
+flask>=3.0.0
+flask-cors>=4.0.0
+numpy>=1.24.0
+pydub>=0.25.1
+# Required for Python 3.13+ (audioop was removed)
+gunicorn>=21.2.0
+# Note: torch, torchaudio, torchvision are installed via CPU index in Dockerfile
