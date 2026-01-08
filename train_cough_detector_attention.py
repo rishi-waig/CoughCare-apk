@@ -13,21 +13,9 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision.models import resnet18, ResNet18_Weights
 
-try:
-    from sklearn.metrics import roc_auc_score, average_precision_score, precision_recall_curve, roc_curve
-except (ImportError, ModuleNotFoundError):  # Allow inference without sklearn installed
-    roc_auc_score = average_precision_score = precision_recall_curve = roc_curve = None
-
-try:
-    import matplotlib.pyplot as plt
-except (ImportError, ModuleNotFoundError):
-    plt = None  # Training-only; not needed for inference
-
-try:
-    from tqdm import tqdm
-except (ImportError, ModuleNotFoundError):
-    def tqdm(x, **kwargs):
-        return x
+from sklearn.metrics import roc_auc_score, average_precision_score, precision_recall_curve, roc_curve
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 @dataclass
@@ -309,7 +297,7 @@ def evaluate(model, loader, criterion, device):
     all_probs = np.array(all_probs)
     all_labels = np.array(all_labels)
     acc = ((all_probs > 0.5) == all_labels).mean()
-    if len(np.unique(all_labels)) > 1 and roc_auc_score is not None:
+    if len(np.unique(all_labels)) > 1:
         auc = roc_auc_score(all_labels, all_probs)
         ap = average_precision_score(all_labels, all_probs)
     else:
@@ -319,8 +307,6 @@ def evaluate(model, loader, criterion, device):
 
 
 def plot_metrics(train_losses, val_losses, val_aucs, val_aps, outdir):
-    if plt is None:
-        return  # Skip plotting if matplotlib not available
     fig, axes = plt.subplots(2, 2, figsize=(12, 9))
     axes[0,0].plot(train_losses, label="Train")
     axes[0,0].plot(val_losses, label="Val")
@@ -339,8 +325,6 @@ def plot_metrics(train_losses, val_losses, val_aucs, val_aps, outdir):
 
 
 def plot_roc_pr(y_true, y_prob, outdir, name="Test"):
-    if plt is None or roc_auc_score is None:
-        return  # Skip plotting if matplotlib or sklearn not available
     fpr, tpr, _ = roc_curve(y_true, y_prob)
     auc = roc_auc_score(y_true, y_prob)
     prec, rec, _ = precision_recall_curve(y_true, y_prob)

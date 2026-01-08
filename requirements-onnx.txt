@@ -1,0 +1,22 @@
+# ONNX Backend Requirements - Lightweight alternative to PyTorch
+# Much smaller footprint than the full PyTorch version
+
+# Web framework
+flask>=3.0.0
+flask-cors>=4.0.0
+gunicorn>=21.0.0
+
+# ONNX Runtime for inference (CPU version - much lighter than PyTorch)
+onnxruntime>=1.16.0
+
+# Audio processing (still need torchaudio for mel spectrograms)
+# Using CPU-only versions to keep image small
+--index-url https://download.pytorch.org/whl/cpu
+torch
+torchaudio
+
+# Audio file handling
+pydub>=0.25.1
+
+# Numerical computing
+numpy>=1.24.0

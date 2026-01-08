@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.onnx-quant
+    container_name: coughcare-backend-quant
+    environment:
+      - PORT=5000
+      - ONNX_MODEL_INT8=cough_detector_int8.onnx
+      - AUDIO_SAVE_DIR=/app/uploaded_audio
+      - KMP_DUPLICATE_LIB_OK=TRUE
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./uploaded_audio:/app/uploaded_audio
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s  # Quantized model loads faster
+    networks:
+      - coughcare-network
+
+networks:
+  coughcare-network:
+    driver: bridge

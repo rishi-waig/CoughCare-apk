@@ -6,4 +6,8 @@ numpy>=1.24.0
 pydub>=0.25.1
 # Required for Python 3.13+ (audioop was removed)
 gunicorn>=21.2.0
+# ONNX for model compression
+onnx>=1.15.0
+onnxruntime>=1.16.0
+onnxsim>=0.4.0  # For ONNX model optimization
 # Note: torch, torchaudio, torchvision are installed via CPU index in Dockerfile

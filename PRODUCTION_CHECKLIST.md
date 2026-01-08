@@ -279,3 +279,5 @@ docker-compose up -d --build backend
 **Status:** ⚠️ NOT PRODUCTION READY - Configuration needed
 
 
+
+

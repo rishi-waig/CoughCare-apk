@@ -62,9 +62,7 @@ ENV/
 
 # Large files / Models
 
-*.pt
-*.h5
-*.onnx
+
 
 # Project specific
 uploaded_audio/
