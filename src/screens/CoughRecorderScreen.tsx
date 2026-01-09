@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { Audio } from 'expo-av';
-import Constants from 'expo-constants';
+import { Asset } from 'expo-asset';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -219,92 +219,37 @@ export default function CoughRecorderScreen() {
         const blob = await response.blob();
         uri = URL.createObjectURL(blob);
       } else {
-        // For React Native, try to use asset first, then fallback to backend
-        // Use require for local assets (returns number, but we'll handle it)
+        // For React Native, load from bundled assets
+        console.log('Loading sample from bundled assets...');
         try {
-          // Try to use the sample from public folder via Metro bundler
-          // For React Native, we can't directly require audio files, so fetch from backend
-          // Use the same API base URL logic as api.ts
-          const getApiBaseUrl = () => {
-            const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
-            if (envUrl) return envUrl;
-
-            const configUrl = Constants.expoConfig?.extra?.apiBaseUrl;
-            if (configUrl && !configUrl.includes('localhost') && !configUrl.includes('127.0.0.1')) {
-              return configUrl;
-            }
-
-            if (__DEV__) {
-              if (Platform.OS === 'android') {
-                return 'http://10.100.32.31:5001';
-              }
-              return 'http://localhost:5001';
-            }
-            return configUrl || 'https://your-api-domain.com';
-          };
-
-          const apiBaseUrl = getApiBaseUrl();
-          sampleUrl = `${apiBaseUrl}/samples/${sampleFile}`;
-          console.log('Loading sample from backend:', sampleUrl);
-
-          // Add timeout for network request (reduced to 5 seconds for faster feedback)
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
+          // Lazy require - only executed on React Native (using .native.ts extension)
+          let sampleAsset: any;
           try {
-            // First, check if backend is reachable with a quick health check
-            try {
-              const healthCheckUrl = `${apiBaseUrl}/health`;
-              const healthResponse = await fetch(healthCheckUrl, {
-                signal: controller.signal,
-                method: 'GET',
-              });
-              if (!healthResponse.ok) {
-                throw new Error('Backend health check failed');
-              }
-            } catch (healthError: any) {
-              clearTimeout(timeoutId);
-              throw new Error(`Backend not reachable at ${apiBaseUrl}. Please ensure:\n1. Backend is running: docker-compose up -d backend\n2. For Android emulator, check network connectivity\n3. Backend URL: ${apiBaseUrl}`);
-            }
-
-            // If health check passes, fetch the sample
-            const response = await fetch(sampleUrl, {
-              signal: controller.signal,
-              method: 'GET',
-            });
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-              throw new Error(`Failed to fetch sample: ${response.status} ${response.statusText}`);
-            }
-
-            const blob = await response.blob();
-            const cacheDir = (FileSystem as any).cacheDirectory || (FileSystem as any).documentDirectory;
-            if (!cacheDir) {
-              throw new Error('FileSystem cache directory not available');
-            }
-            const localUri = `${cacheDir}${sampleFile}`;
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
-            });
-            const base64Data = base64.split(',')[1];
-            await FileSystem.writeAsStringAsync(localUri, base64Data, {
-              encoding: ((FileSystem as any).EncodingType?.Base64 || 'base64') as any,
-            });
-            uri = localUri;
-          } catch (fetchError: any) {
-            clearTimeout(timeoutId);
-            if (fetchError.name === 'AbortError') {
-              throw new Error(`Network request timeout. Backend may not be accessible from ${Platform.OS === 'android' ? 'Android emulator' : 'device'}. Please check:\n1. Backend is running: docker-compose up -d backend\n2. Backend URL: ${apiBaseUrl}\n3. Network connectivity`);
-            }
-            throw fetchError; // Re-throw the error with its original message
+            sampleAsset = require('../assets/audio.native').SAMPLE_AUDIO;
+          } catch (requireError) {
+            throw new Error('Sample audio asset not found. Make sure the file is in assets/audio/ folder.');
           }
-        } catch (error: any) {
-          console.error('Error loading sample:', error);
-          throw error;
+          
+          // Load from bundled assets using expo-asset
+          const asset = Asset.fromModule(sampleAsset);
+          await asset.downloadAsync();
+          
+          if (!asset.localUri) {
+            throw new Error('Failed to load sample audio asset - localUri is null');
+          }
+          
+          // Copy to cache for easier access
+          const cacheDir = FileSystem.cacheDirectory;
+          const localUri = `${cacheDir}${sampleFile}`;
+          await FileSystem.copyAsync({
+            from: asset.localUri,
+            to: localUri,
+          });
+          uri = localUri;
+          console.log('Sample audio loaded from assets and copied to cache:', uri);
+        } catch (assetError: any) {
+          console.error('Failed to load sample from assets:', assetError);
+          throw new Error(`Sample audio is not available: ${assetError.message}\n\nYou can still record your own cough audio using the microphone button.`);
         }
       }
 

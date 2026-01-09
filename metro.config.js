@@ -11,6 +11,8 @@ const config = getDefaultConfig(__dirname);
 config.watchFolders = [__dirname];
 config.resolver = {
   ...config.resolver,
+  // Add .onnx files as assets so they can be bundled
+  assetExts: [...(config.resolver?.assetExts || []), 'onnx'],
   blockList: [
     // Exclude most of node_modules from watching
     /node_modules\/.*\/node_modules\/.*/,

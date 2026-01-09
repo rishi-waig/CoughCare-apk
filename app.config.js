@@ -11,6 +11,11 @@ export default {
       resizeMode: "contain",
       backgroundColor: "#158B95"
     },
+    // Fix for Expo SDK 54 autolinking issues with native modules
+    autolinking: {
+      legacy_shallowReactNativeLinking: true,
+      searchPaths: ["../../node_modules", "node_modules"]
+    },
     assetBundlePatterns: [
       "**/*"
     ],
@@ -37,7 +42,11 @@ export default {
         {
           microphonePermission: "Allow CoughCare to access your microphone to record cough sounds."
         }
-      ]
+      ],
+      "expo-dev-client",
+      // Plugin to automatically add OnnxruntimePackage to MainApplication.kt
+      // This fixes the Expo 54 autolinking bug
+      "./app.plugin.js"
     ],
     extra: {
       eas: {

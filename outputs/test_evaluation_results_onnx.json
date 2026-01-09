@@ -1,0 +1,83 @@
+{
+  "model_type": "ONNX_INT8",
+  "model_path": "d:\\coughcare_waig_3\\coughcare_waig 3\\cough_detector_int8.onnx",
+  "test_set_size": 1510,
+  "positive_samples": 806,
+  "negative_samples": 704,
+  "class_balance": 0.5337748344370861,
+  "overall_metrics": {
+    "test_loss": 0.18214908817858186,
+    "auc": 0.9817825823370179,
+    "average_precision": 0.9855626959841368
+  },
+  "threshold_results": {
+    "threshold_0.3": {
+      "accuracy": 0.9317880794701987,
+      "f1_score": 0.9379144062688366,
+      "precision": 0.9120750293083235,
+      "recall": 0.9652605459057072,
+      "specificity": 0.8934659090909091,
+      "true_positives": 778,
+      "false_positives": 75,
+      "true_negatives": 629,
+      "false_negatives": 28
+    },
+    "threshold_0.4": {
+      "accuracy": 0.93841059602649,
+      "f1_score": 0.9431192660550459,
+      "precision": 0.9300361881785284,
+      "recall": 0.956575682382134,
+      "specificity": 0.9176136363636364,
+      "true_positives": 771,
+      "false_positives": 58,
+      "true_negatives": 646,
+      "false_negatives": 35
+    },
+    "threshold_0.5": {
+      "accuracy": 0.9370860927152318,
+      "f1_score": 0.9411764705882353,
+      "precision": 0.9394313967861557,
+      "recall": 0.9429280397022333,
+      "specificity": 0.9303977272727273,
+      "true_positives": 760,
+      "false_positives": 49,
+      "true_negatives": 655,
+      "false_negatives": 46
+    },
+    "threshold_0.6": {
+      "accuracy": 0.9364238410596026,
+      "f1_score": 0.9399249061326659,
+      "precision": 0.9482323232323232,
+      "recall": 0.9317617866004962,
+      "specificity": 0.9417613636363636,
+      "true_positives": 751,
+      "false_positives": 41,
+      "true_negatives": 663,
+      "false_negatives": 55
+    },
+    "threshold_0.7": {
+      "accuracy": 0.9324503311258279,
+      "f1_score": 0.9351145038167938,
+      "precision": 0.9595300261096605,
+      "recall": 0.9119106699751861,
+      "specificity": 0.9559659090909091,
+      "true_positives": 735,
+      "false_positives": 31,
+      "true_negatives": 673,
+      "false_negatives": 71
+    }
+  },
+  "optimal_threshold": {
+    "threshold": 0.41000000000000003,
+    "f1_score": 0.9442743417023882,
+    "accuracy": 0.9397350993377483
+  },
+  "segment_analysis": {
+    "total_segments": 25711,
+    "mean_probability": 0.24759442514329275,
+    "std_probability": 0.11519776200498007,
+    "min_probability": 0.006583750247955322,
+    "max_probability": 0.5682623386383057
+  },
+  "failed_files": []
+}

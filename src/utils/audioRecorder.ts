@@ -1,10 +1,12 @@
-// Audio Recorder utility using expo-av instead of Web Audio API
-import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system/legacy';
+// Audio Recorder utility
+// - Web: Uses MediaRecorder (Web Audio API)
+// - Native: Uses react-native-audio-record (guarantees 16-bit PCM WAV)
 import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
+import AudioRecord from 'react-native-audio-record';
+import { Buffer } from 'buffer';
 
 export class AudioRecorder {
-  private recording: Audio.Recording | null = null;
   private isRecording: boolean = false;
   private recordingUri: string | null = null;
   private mediaRecorder: MediaRecorder | null = null;
@@ -13,50 +15,37 @@ export class AudioRecorder {
   async start(): Promise<void> {
     try {
       if (Platform.OS === 'web') {
-        // Use Web Audio API for web platform
+        // --- WEB IMPLEMENTATION ---
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         this.mediaRecorder = new MediaRecorder(stream);
         this.audioChunks = [];
-        
+
         this.mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             this.audioChunks.push(event.data);
           }
         };
-        
+
         this.mediaRecorder.onstop = () => {
           const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
           this.recordingUri = URL.createObjectURL(blob);
         };
-        
+
         this.mediaRecorder.start();
         this.isRecording = true;
       } else {
-        // Use expo-av for React Native
-        // Request permissions
-        const { status } = await Audio.requestPermissionsAsync();
-        if (status !== 'granted') {
-          throw new Error('Audio recording permission not granted');
-        }
+        // --- NATIVE IMPLEMENTATION (Android/iOS) ---
+        // Configure for 16-bit PCM WAV @ 16kHz (Required by ONNX Model)
+        const options = {
+          sampleRate: 16000,  // default 44100
+          channels: 1,        // 1 or 2, default 1
+          bitsPerSample: 16,  // 8 or 16, default 16
+          audioSource: 6,     // android only (VOICE_RECOGNITION)
+          wavFile: 'cough_recording.wav' // default 'audio.wav'
+        };
 
-        // Set audio mode for recording
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true,
-        });
-
-        // Create new recording
-        const { recording } = await Audio.Recording.createAsync(
-          Audio.RecordingOptionsPresets.HIGH_QUALITY,
-          (status) => {
-            // Recording status updates
-            if (status.isDoneRecording) {
-              this.isRecording = false;
-            }
-          }
-        );
-
-        this.recording = recording;
+        AudioRecord.init(options);
+        AudioRecord.start();
         this.isRecording = true;
       }
     } catch (error: any) {
@@ -66,64 +55,44 @@ export class AudioRecorder {
   }
 
   async stop(): Promise<string> {
+    if (!this.isRecording) {
+      throw new Error('No active recording');
+    }
+
     if (Platform.OS === 'web') {
-      if (!this.mediaRecorder || !this.isRecording) {
-        throw new Error('No active recording');
-      }
-
-      try {
-        return new Promise((resolve, reject) => {
-          if (!this.mediaRecorder) {
-            reject(new Error('No media recorder'));
-            return;
-          }
-
-          this.mediaRecorder.onstop = () => {
-            const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
-            const uri = URL.createObjectURL(blob);
-            this.recordingUri = uri;
-            this.isRecording = false;
-            
-            // Stop all tracks
-            if (this.mediaRecorder.stream) {
-              this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
-            }
-            
-            resolve(uri);
-          };
-
-          this.mediaRecorder.stop();
-        });
-      } catch (error: any) {
-        console.error('Error stopping recording:', error);
-        throw error;
-      }
-    } else {
-      if (!this.recording || !this.isRecording) {
-        throw new Error('No active recording');
-      }
-
-      try {
-        await this.recording.stopAndUnloadAsync();
-        const uri = this.recording.getURI();
-        
-        if (!uri) {
-          throw new Error('Failed to get recording URI');
+      // --- WEB STOP ---
+      return new Promise((resolve, reject) => {
+        if (!this.mediaRecorder) {
+          reject(new Error('No media recorder'));
+          return;
         }
 
-        this.recordingUri = uri;
+        this.mediaRecorder.onstop = () => {
+          const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+          const uri = URL.createObjectURL(blob);
+          this.recordingUri = uri;
+          this.isRecording = false;
+
+          // Stop all tracks
+          if (this.mediaRecorder.stream) {
+            this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+          }
+
+          resolve(uri);
+        };
+
+        this.mediaRecorder.stop();
+      });
+    } else {
+      // --- NATIVE STOP ---
+      try {
+        const audioFile = await AudioRecord.stop();
         this.isRecording = false;
-        this.recording = null;
-
-        // Reset audio mode
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: false,
-        });
-
-        return uri;
-      } catch (error: any) {
-        console.error('Error stopping recording:', error);
+        this.recordingUri = `file://${audioFile}`;
+        console.log('Recording saved to:', this.recordingUri);
+        return this.recordingUri;
+      } catch (error) {
+        console.error('Error stopping native recording:', error);
         throw error;
       }
     }
@@ -147,13 +116,9 @@ export class AudioRecorder {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      
-      // Determine MIME type from file extension
-      const mimeType = this.recordingUri.endsWith('.m4a') 
-        ? 'audio/m4a' 
-        : this.recordingUri.endsWith('.wav')
-        ? 'audio/wav'
-        : 'audio/mp4';
+
+      // Determine MIME type
+      const mimeType = this.recordingUri.endsWith('.wav') ? 'audio/wav' : 'audio/mp4';
 
       return new Blob([byteArray], { type: mimeType });
     } catch (error) {
@@ -175,9 +140,7 @@ export class AudioRecorder {
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
         try {
           this.mediaRecorder.stop();
-        } catch (error) {
-          // Already stopped
-        }
+        } catch (error) { }
       }
       if (this.mediaRecorder?.stream) {
         this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
@@ -185,30 +148,15 @@ export class AudioRecorder {
       this.mediaRecorder = null;
       this.audioChunks = [];
     } else {
-      if (this.recording) {
+      if (this.isRecording) {
         try {
-          await this.recording.stopAndUnloadAsync();
-        } catch (error) {
-          // Already stopped
-        }
-        this.recording = null;
+          await AudioRecord.stop();
+        } catch (error) { }
       }
     }
-    
+
     this.isRecording = false;
-    
-    if (this.recordingUri) {
-      try {
-        if (Platform.OS === 'web') {
-          URL.revokeObjectURL(this.recordingUri);
-        } else {
-          await FileSystem.deleteAsync(this.recordingUri, { idempotent: true });
-        }
-      } catch (error) {
-        // File might not exist
-      }
-      this.recordingUri = null;
-    }
+    this.recordingUri = null;
   }
 }
 

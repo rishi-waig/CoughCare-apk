@@ -1,0 +1,9 @@
+{
+  "model_type": "FULL_ONNX_PIPELINE",
+  "test_loss": 0.17928907015354947,
+  "test_accuracy": 0.9403973509933775,
+  "test_auc": 0.9820204996616289,
+  "test_ap": 0.9853062883872256,
+  "optimal_threshold": 0.63,
+  "optimal_f1": 0.9433249370277078
+}

@@ -67,3 +67,6 @@ ENV/
 # Project specific
 uploaded_audio/
 .metro-health-check*
+
+# Models - Explicitly include ONNX
+!*.onnx

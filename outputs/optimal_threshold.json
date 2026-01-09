@@ -1,0 +1,11 @@
+{
+  "optimal_f1_threshold": 0.61,
+  "optimal_f1_score": 0.9538461538461539,
+  "optimal_acc_threshold": 0.76,
+  "optimal_acc_score": 0.9509933774834437,
+  "optimal_youden_threshold": 0.7764313817024231,
+  "recommended_threshold": 0.61,
+  "test_set_size": 1510,
+  "positive_samples": 806,
+  "class_balance": 0.5337748344370861
+}

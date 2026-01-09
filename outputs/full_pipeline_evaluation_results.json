@@ -1,0 +1,83 @@
+{
+  "model_type": "FULL_ONNX_PIPELINE",
+  "preprocessing_model": "d:\\coughcare_waig_3\\coughcare_waig 3\\cough_preprocessing.onnx",
+  "detection_model": "d:\\coughcare_waig_3\\coughcare_waig 3\\cough_detector_int8.onnx",
+  "test_set_size": 1510,
+  "positive_samples": 806,
+  "negative_samples": 704,
+  "class_balance": 0.5337748344370861,
+  "overall_metrics": {
+    "test_loss": 0.17928907015354947,
+    "auc": 0.9820204996616289,
+    "average_precision": 0.9853062883872256
+  },
+  "threshold_results": {
+    "threshold_0.3": {
+      "accuracy": 0.9344370860927153,
+      "f1_score": 0.9401812688821752,
+      "precision": 0.9163722025912838,
+      "recall": 0.9652605459057072,
+      "specificity": 0.8991477272727273,
+      "true_positives": 778,
+      "false_positives": 71,
+      "true_negatives": 633,
+      "false_negatives": 28
+    },
+    "threshold_0.4": {
+      "accuracy": 0.9364238410596026,
+      "f1_score": 0.9413919413919414,
+      "precision": 0.9266826923076923,
+      "recall": 0.956575682382134,
+      "specificity": 0.9133522727272727,
+      "true_positives": 771,
+      "false_positives": 61,
+      "true_negatives": 643,
+      "false_negatives": 35
+    },
+    "threshold_0.5": {
+      "accuracy": 0.937748344370861,
+      "f1_score": 0.9416873449131513,
+      "precision": 0.9416873449131513,
+      "recall": 0.9416873449131513,
+      "specificity": 0.9332386363636364,
+      "true_positives": 759,
+      "false_positives": 47,
+      "true_negatives": 657,
+      "false_negatives": 47
+    },
+    "threshold_0.6": {
+      "accuracy": 0.9397350993377483,
+      "f1_score": 0.9428032683846638,
+      "precision": 0.9554140127388535,
+      "recall": 0.9305210918114144,
+      "specificity": 0.9502840909090909,
+      "true_positives": 750,
+      "false_positives": 35,
+      "true_negatives": 669,
+      "false_negatives": 56
+    },
+    "threshold_0.7": {
+      "accuracy": 0.9364238410596026,
+      "f1_score": 0.9390862944162437,
+      "precision": 0.961038961038961,
+      "recall": 0.9181141439205955,
+      "specificity": 0.9573863636363636,
+      "true_positives": 740,
+      "false_positives": 30,
+      "true_negatives": 674,
+      "false_negatives": 66
+    }
+  },
+  "optimal_threshold": {
+    "threshold": 0.63,
+    "f1_score": 0.9433249370277078,
+    "accuracy": 0.9403973509933775
+  },
+  "segment_analysis": {
+    "total_segments": 19709,
+    "mean_probability": 0.2302885056842413,
+    "std_probability": 0.11806674872616135,
+    "min_probability": 0.006638914346694946,
+    "max_probability": 0.5694401264190674
+  }
+}

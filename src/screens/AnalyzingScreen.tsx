@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, Alert } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,6 +14,7 @@ import Animated, {
 import AppHeader from '../components/AppHeader';
 import { api } from '../utils/api';
 // FileSystem no longer needed - using URI directly for React Native
+// Client-side ONNX inference is handled automatically by api.ts
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type AnalyzingRouteProp = RouteProp<RootStackParamList, 'Analyzing'>;
@@ -220,7 +221,9 @@ export default function AnalyzingScreen() {
           </View>
 
           <Text style={styles.infoText}>
-            Our AI model is analyzing your cough pattern...
+            {Platform.OS === 'web' && api.isClientONNXReady()
+              ? 'Running AI analysis locally in your browser...'
+              : 'Our AI model is analyzing your cough pattern...'}
           </Text>
 
           <View style={styles.steps}>
@@ -238,7 +241,9 @@ export default function AnalyzingScreen() {
         </Animated.View>
 
         <Text style={styles.footerText}>
-          Please wait while we analyze your cough using our trained model...
+          {Platform.OS === 'web' && api.isClientONNXReady()
+            ? 'Processing audio locally using ONNX Runtime - no data leaves your device!'
+            : 'Please wait while we analyze your cough using our trained model...'}
         </Text>
       </ScrollView>
     </LinearGradient>

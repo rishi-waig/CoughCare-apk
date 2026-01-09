@@ -1,6 +1,18 @@
-// API utility for backend communication
+// API utility for backend communication with client-side ONNX fallback
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+
+// Enable client-side ONNX inference (set to false to always use backend)
+const USE_CLIENT_SIDE_ONNX = true;
+
+// Lazy import for ONNX inference to avoid bundling issues
+let OnnxInference: typeof import('./onnxInference') | null = null;
+async function getOnnxInference() {
+  if (!OnnxInference) {
+    OnnxInference = await import('./onnxInference');
+  }
+  return OnnxInference;
+}
 
 // API Base URL Configuration
 // Priority: 1. Environment variable (EXPO_PUBLIC_API_BASE_URL)
@@ -43,65 +55,66 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 export const api = {
+  /**
+   * Detect cough using client-side ONNX (web) or backend API (native)
+   * On web: Uses ONNX Runtime Web for 100% client-side inference
+   * On native: Falls back to backend API
+   */
   async detectCough(audioBlobOrUri: Blob | string, filename: string = 'cough.wav'): Promise<any> {
-    try {
-      const formData = new FormData();
-      
-      // For React Native, use URI directly. For web, use Blob
-      if (typeof audioBlobOrUri === 'string') {
-        // React Native: use file URI
-        formData.append('audio', {
-          uri: audioBlobOrUri,
-          type: audioBlobOrUri.endsWith('.wav') ? 'audio/wav' : 
-                audioBlobOrUri.endsWith('.mp3') ? 'audio/mp3' : 'audio/m4a',
-          name: filename,
-        } as any);
-      } else {
-        // Web: use Blob
-        formData.append('audio', audioBlobOrUri as any, filename);
+    // Try client-side ONNX inference (works on both web and React Native)
+    if (USE_CLIENT_SIDE_ONNX) {
+      try {
+        console.log('[API] Attempting client-side ONNX inference (web)...');
+
+        // Get audio data as ArrayBuffer
+        let audioData: ArrayBuffer;
+
+        if (typeof audioBlobOrUri === 'string') {
+          // For React Native file URIs, read the file
+          if (Platform.OS !== 'web' && audioBlobOrUri.startsWith('file://')) {
+            const FileSystem = await import('expo-file-system/legacy');
+            const base64 = await FileSystem.readAsStringAsync(audioBlobOrUri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+            // Convert base64 to ArrayBuffer
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
+            audioData = bytes.buffer;
+          } else {
+            // Fetch from URL/blob URL (web)
+            const response = await fetch(audioBlobOrUri);
+            if (!response.ok) {
+              throw new Error(`Failed to fetch audio: ${response.status}`);
+            }
+            audioData = await response.arrayBuffer();
+          }
+        } else {
+          // Blob to ArrayBuffer (web)
+          audioData = await audioBlobOrUri.arrayBuffer();
+        }
+
+        console.log(`[API] Audio data: ${audioData.byteLength} bytes`);
+
+        // Run ONNX inference
+        const onnx = await getOnnxInference();
+        const result = await onnx.detectCough(audioData);
+
+        console.log('[API] Client-side ONNX result:', result);
+        return result;
+
+      } catch (onnxError: any) {
+        console.warn('[API] Client-side ONNX failed:', onnxError.message);
+        // Don't fall back to backend - throw error instead
+        throw new Error(`ONNX inference failed: ${onnxError.message}. Please ensure models are available and audio is in WAV format.`);
       }
-
-      const apiUrl = `${API_BASE_URL}/api/detect-cough`;
-      if (__DEV__) {
-        console.log('Sending request to:', apiUrl);
-        console.log('FormData audio:', typeof audioBlobOrUri === 'string' ? audioBlobOrUri : 'Blob');
-      }
-
-      // For React Native, don't set Content-Type - let FormData set it automatically with boundary
-      // Setting headers manually can break multipart/form-data boundary
-      const fetchOptions: RequestInit = {
-        method: 'POST',
-        body: formData,
-      };
-
-      // Only set Accept header, not Content-Type (FormData needs to set boundary automatically)
-      if (Platform.OS === 'web') {
-        fetchOptions.headers = {
-          'Accept': 'application/json',
-        };
-      }
-      // For React Native, don't set any headers - FormData will handle it
-
-      const response = await fetch(apiUrl, fetchOptions);
-
-      if (__DEV__) {
-        console.log('Response received:', response.status, response.statusText);
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData?.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (__DEV__) {
-        console.log('Response data:', data);
-      }
-      return data;
-    } catch (error) {
-      console.error('Error detecting cough:', error);
-      throw error;
     }
+
+    // If we reach here, ONNX should have worked
+    // This should not happen if USE_CLIENT_SIDE_ONNX is true
+    throw new Error('ONNX inference not available. Please enable USE_CLIENT_SIDE_ONNX or ensure models are loaded.');
   },
 
   async analyzeTB(audioBlobOrUri: Blob | string, filename: string = 'cough.wav'): Promise<any> {
@@ -158,6 +171,41 @@ export const api = {
       console.error('Error checking health:', error);
       throw error;
     }
+  },
+
+  /**
+   * Initialize client-side ONNX models (web and React Native)
+   * Call this early to pre-load models for faster inference
+   */
+  async initClientONNX(): Promise<void> {
+    if (USE_CLIENT_SIDE_ONNX) {
+      try {
+        console.log('[API] Pre-loading ONNX models...');
+        const onnx = await getOnnxInference();
+        await onnx.initONNX();
+        console.log('[API] ONNX models ready');
+      } catch (error) {
+        console.warn('[API] Failed to pre-load ONNX models:', error);
+      }
+    }
+  },
+
+  /**
+   * Check if client-side ONNX is available
+   */
+  isClientONNXReady(): boolean {
+    if (!USE_CLIENT_SIDE_ONNX || !OnnxInference) {
+      return false;
+    }
+    return OnnxInference.isONNXReady();
+  },
+
+  /**
+   * Get ONNX model info
+   */
+  async getONNXInfo() {
+    const onnx = await getOnnxInference();
+    return onnx.getModelInfo();
   },
 };
 
