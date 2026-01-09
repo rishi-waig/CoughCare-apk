@@ -25,13 +25,13 @@ const getApiBaseUrl = () => {
   if (envUrl) {
     return envUrl;
   }
-  
+
   // Check app.json configuration
   const configUrl = Constants.expoConfig?.extra?.apiBaseUrl;
   if (configUrl && !configUrl.includes('localhost') && !configUrl.includes('127.0.0.1')) {
     return configUrl; // Use if it's not a localhost URL (production config)
   }
-  
+
   // Development defaults
   if (__DEV__) {
     if (Platform.OS === 'android') {
@@ -42,7 +42,7 @@ const getApiBaseUrl = () => {
     // iOS simulator and web use localhost in development
     return 'http://localhost:5001';
   }
-  
+
   // Production: Must be configured via EXPO_PUBLIC_API_BASE_URL or app.json
   // This will throw an error if not configured, preventing accidental deployment
   const prodUrl = configUrl || 'https://your-api-domain.com';
@@ -102,8 +102,15 @@ export const api = {
         const onnx = await getOnnxInference();
         const result = await onnx.detectCough(audioData);
 
-        console.log('[API] Client-side ONNX result:', result);
-        return result;
+        // Hardcode TB detection to false for client-side inference
+        const finalResult = {
+          ...result,
+          tbDetected: false,
+          tbConfidence: 0.0
+        };
+
+        console.log('[API] Client-side ONNX result:', finalResult);
+        return finalResult;
 
       } catch (onnxError: any) {
         console.warn('[API] Client-side ONNX failed:', onnxError.message);
@@ -118,49 +125,14 @@ export const api = {
   },
 
   async analyzeTB(audioBlobOrUri: Blob | string, filename: string = 'cough.wav'): Promise<any> {
-    try {
-      const formData = new FormData();
-      
-      // For React Native, use URI directly. For web, use Blob
-      if (typeof audioBlobOrUri === 'string') {
-        // React Native: use file URI
-        formData.append('audio', {
-          uri: audioBlobOrUri,
-          type: audioBlobOrUri.endsWith('.wav') ? 'audio/wav' : 
-                audioBlobOrUri.endsWith('.mp3') ? 'audio/mp3' : 'audio/m4a',
-          name: filename,
-        } as any);
-      } else {
-        // Web: use Blob
-        formData.append('audio', audioBlobOrUri as any, filename);
-      }
-
-      const apiUrl = `${API_BASE_URL}/api/analyze-tb`;
-      
-      // For React Native, don't set Content-Type - let FormData set it automatically
-      const fetchOptions: RequestInit = {
-        method: 'POST',
-        body: formData,
-      };
-
-      if (Platform.OS === 'web') {
-        fetchOptions.headers = {
-          'Accept': 'application/json',
-        };
-      }
-
-      const response = await fetch(apiUrl, fetchOptions);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData?.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error analyzing TB:', error);
-      throw error;
-    }
+    console.log('[API] TB Analysis hardcoded to FALSE (Offline Mode)');
+    // Return mock response immediately without hitting server
+    return {
+      tbDetected: false,
+      confidence: 0.0,
+      message: "TB Analysis is disabled in offline mode.",
+      error: null
+    };
   },
 
   async healthCheck(): Promise<any> {
