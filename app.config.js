@@ -1,7 +1,7 @@
 export default {
   expo: {
     name: "Cough Against TB",
-    slug: "cough-against-tb-ghana",
+    slug: "coughcare",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./public/logo.png",
