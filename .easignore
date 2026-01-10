@@ -1,0 +1,40 @@
+# EAS Build Ignore
+# These files will NOT be uploaded to Expo Build servers
+
+# Dependencies (Force ignore)
+node_modules/
+node_modules
+**/node_modules
+
+# Native projects
+android/
+ios/
+
+# Large files / Models not needed for build
+*.pth
+*.pt
+*.ckpt
+*.h5
+
+# Ignore all ONNX by default
+*.onnx
+
+# Keep ONLY native assets (ignore web public models to save space)
+!assets/**/*.onnx
+# !public/**/*.onnx
+
+# Ignore output folders
+outputs/
+uploaded_audio/
+
+# Git
+.git/
+
+# Expo
+.expo/
+web-build/
+
+# Misc
+coverage/
+build/
+dist/
