@@ -1,0 +1,13 @@
+{
+  "ignore_dirs": [
+    "node_modules",
+    ".git",
+    ".expo",
+    "dist",
+    "build",
+    "uploaded_audio",
+    "__pycache__",
+    ".pytest_cache"
+  ]
+}
+

@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+.venv
+venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development files
+*.md
+*.sh
+*.log
+
+# Frontend build artifacts (not needed for backend)
+src/
+public/
+package.json
+package-lock.json
+app.json
+app.config.js
+babel.config.js
+metro.config.js
+tsconfig*.json
+eslint.config.js
+index.html
+
+# Uploaded audio (will be created in container)
+uploaded_audio/*.wav
+uploaded_audio/*.webm
+
+# Keep directory structure but not files
+!uploaded_audio/.gitkeep
