@@ -85,10 +85,11 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#CBD5E1',
         alignItems: 'center',
+        justifyContent: 'center', // Ensure text is centered
     },
     radioButtonActive: {
         borderColor: '#2563EB',
-        backgroundColor: 'white',
+        backgroundColor: '#EFF6FF', // Light blue background for active
     },
     radioButtonSuccess: {
         backgroundColor: '#22C55E',
@@ -99,8 +100,9 @@ const styles = StyleSheet.create({
         borderColor: '#EF4444',
     },
     radioText: {
-        color: '#1E293B',
+        color: '#0F172A', // Darker slate for better contrast
         fontWeight: '500',
+        fontSize: 16, // Ensure readable size
     },
     radioTextActive: {
         color: '#2563EB',

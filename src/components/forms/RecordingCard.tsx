@@ -118,7 +118,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
                         }}>
                             <Ionicons name="alert-circle" size={18} color="#EF4444" style={{ marginRight: 6 }} />
                             <Text style={{ color: '#B91C1C', fontSize: 14, fontWeight: '600' }}>
-                                Analysis Error
+                                {analysis.error}
                             </Text>
                         </View>
                     ) : analysis?.result ? (

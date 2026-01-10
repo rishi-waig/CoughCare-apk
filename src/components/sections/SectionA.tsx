@@ -77,9 +77,22 @@ export const SectionA: React.FC<SectionAProps> = ({
             <Text style={styles.label}>Date of Screening *</Text>
             <TextInput
                 style={styles.input}
-                placeholder="mm/dd/yyyy"
+                placeholder="DD/MM/YYYY"
+                keyboardType="numeric"
+                maxLength={10}
                 value={formData.dateOfScreening}
-                onChangeText={(text) => updateField('dateOfScreening', text)}
+                onChangeText={(text) => {
+                    // Simple date mask: DD/MM/YYYY
+                    let cleaned = text.replace(/\D/g, '');
+                    let formatted = cleaned;
+                    if (cleaned.length > 2) {
+                        formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+                    }
+                    if (cleaned.length > 4) {
+                        formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4, 8);
+                    }
+                    updateField('dateOfScreening', formatted);
+                }}
             />
 
             <Dropdown
