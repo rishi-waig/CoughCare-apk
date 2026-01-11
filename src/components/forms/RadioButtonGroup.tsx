@@ -79,17 +79,18 @@ const styles = StyleSheet.create({
     },
     radioButton: {
         flex: 1,
-        backgroundColor: 'white',
+        backgroundColor: '#F8FAFC', // Light gray background for unselected
         padding: 12,
         borderRadius: 8,
         borderWidth: 1,
         borderColor: '#CBD5E1',
         alignItems: 'center',
-        justifyContent: 'center', // Ensure text is centered
+        justifyContent: 'center',
     },
     radioButtonActive: {
         borderColor: '#2563EB',
-        backgroundColor: '#EFF6FF', // Light blue background for active
+        backgroundColor: '#EFF6FF',
+        borderWidth: 2, // Thicker border for active
     },
     radioButtonSuccess: {
         backgroundColor: '#22C55E',
@@ -100,9 +101,9 @@ const styles = StyleSheet.create({
         borderColor: '#EF4444',
     },
     radioText: {
-        color: '#0F172A', // Darker slate for better contrast
-        fontWeight: '500',
-        fontSize: 16, // Ensure readable size
+        color: '#000000', // Pure black for maximum contrast
+        fontWeight: '600',
+        fontSize: 16,
     },
     radioTextActive: {
         color: '#2563EB',

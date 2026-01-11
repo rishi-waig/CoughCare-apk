@@ -39,7 +39,12 @@ export const Dropdown: React.FC<DropdownProps> = ({
             </TouchableOpacity>
             {isExpanded && (
                 <View style={styles.dropdownList}>
-                    <ScrollView nestedScrollEnabled style={{ maxHeight: 200 }}>
+                    <ScrollView
+                        nestedScrollEnabled
+                        style={{ maxHeight: 250 }}
+                        persistentScrollbar={true}
+                        keyboardShouldPersistTaps="handled"
+                    >
                         {options.map((item) => (
                             <TouchableOpacity
                                 key={item}

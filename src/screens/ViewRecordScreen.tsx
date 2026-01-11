@@ -516,12 +516,21 @@ const ViewRecordScreen = () => {
                                             <Text style={styles.formLabel}>Date of Specimen Collection</Text>
                                             <TextInput
                                                 style={styles.formInput}
-                                                placeholder="mm/dd/yyyy"
+                                                placeholder="DD/MM/YYYY"
                                                 value={testFormData.dateCollection}
                                                 onChangeText={(text) => {
-                                                    setTestFormData({ ...testFormData, dateCollection: text });
+                                                    let cleaned = text.replace(/\D/g, '');
+                                                    let formatted = cleaned;
+                                                    if (cleaned.length > 2) {
+                                                        formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+                                                    }
+                                                    if (cleaned.length > 4) {
+                                                        formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4, 8);
+                                                    }
+                                                    setTestFormData({ ...testFormData, dateCollection: formatted });
                                                 }}
                                                 keyboardType="numeric"
+                                                maxLength={10}
                                             />
                                         </View>
 
@@ -529,12 +538,21 @@ const ViewRecordScreen = () => {
                                             <Text style={styles.formLabel}>Date of Result</Text>
                                             <TextInput
                                                 style={styles.formInput}
-                                                placeholder="mm/dd/yyyy"
+                                                placeholder="DD/MM/YYYY"
                                                 value={testFormData.dateResult}
                                                 onChangeText={(text) => {
-                                                    setTestFormData({ ...testFormData, dateResult: text });
+                                                    let cleaned = text.replace(/\D/g, '');
+                                                    let formatted = cleaned;
+                                                    if (cleaned.length > 2) {
+                                                        formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
+                                                    }
+                                                    if (cleaned.length > 4) {
+                                                        formatted = formatted.slice(0, 5) + '/' + cleaned.slice(4, 8);
+                                                    }
+                                                    setTestFormData({ ...testFormData, dateResult: formatted });
                                                 }}
                                                 keyboardType="numeric"
+                                                maxLength={10}
                                             />
                                         </View>
 
